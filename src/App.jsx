@@ -12,6 +12,7 @@ import Jobs from './pages/Jobs';
 import Customers from './pages/Customers';
 import Properties from './pages/Properties';
 import MyJobs from './pages/MyJobs';
+import JobDetail from './pages/JobDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
     <Route path="/customers" element={<Customers />} />
     <Route path="/properties" element={<Properties />} />
     <Route path="/my-jobs" element={<MyJobs />} />
+    <Route path="/jobs/:id" element={<JobDetail />} />
     <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
