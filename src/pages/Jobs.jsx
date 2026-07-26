@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const JOB_TYPES = ['clean', 'deep_clean', 'checkin_prep', 'checkout_turnover', 'companionship_visit', 'maintenance', 'other'];
 
@@ -32,6 +32,7 @@ export default function Jobs() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
@@ -175,7 +176,7 @@ export default function Jobs() {
               <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No jobs yet.</TableCell></TableRow>
             )}
             {jobs.map((j) => (
-              <TableRow key={j.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.assign(`/jobs/${j.id}`)}>
+              <TableRow key={j.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/jobs/${j.id}`)}>
                 <TableCell className="font-medium">
                   <Link to={`/jobs/${j.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{propertyLabel(j.property_id)}</Link>
                 </TableCell>
