@@ -1,0 +1,150 @@
+{
+  "name": "Job",
+  "properties": {
+    "access_notes_snapshot": {
+      "type": "string"
+    },
+    "actual_clock_in_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "actual_clock_out_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "assigned_staff_id": {
+      "description": "User id of the assigned staff member",
+      "type": "string"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "job_type": {
+      "enum": [
+        "clean",
+        "deep_clean",
+        "checkin_prep",
+        "checkout_turnover",
+        "companionship_visit",
+        "maintenance",
+        "other"
+      ],
+      "type": "string"
+    },
+    "key_code_snapshot": {
+      "type": "string"
+    },
+    "key_reference_snapshot": {
+      "type": "string"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "scheduled_end": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "scheduled_start": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "special_instructions": {
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "enum": [
+        "draft",
+        "scheduled",
+        "assigned",
+        "en_route",
+        "in_progress",
+        "completed",
+        "reviewed",
+        "invoiced",
+        "cancelled"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "property_id",
+    "job_type",
+    "scheduled_start"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "staff"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.assigned_staff_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "$and": [
+            {
+              "data.company_id": "{{user.data.company_id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        },
+        {
+          "data.assigned_staff_id": "{{user.id}}"
+        }
+      ]
+    }
+  },
+  "type": "object"
+}

@@ -1,0 +1,88 @@
+{
+  "name": "ClockEvent",
+  "properties": {
+    "accuracy_meters": {
+      "description": "GPS accuracy radius reported by device",
+      "type": "number"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "clock_in",
+        "clock_out"
+      ],
+      "type": "string"
+    },
+    "flag_reason": {
+      "type": "string"
+    },
+    "flagged": {
+      "default": false,
+      "description": "True if GPS location was far from the job address, for admin review",
+      "type": "boolean"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "staff_id": {
+      "description": "User id of the staff member clocking in/out",
+      "type": "string"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "job_id",
+    "staff_id",
+    "event_type",
+    "timestamp",
+    "lat",
+    "lng"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.staff_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.staff_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

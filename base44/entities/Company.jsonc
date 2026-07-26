@@ -1,0 +1,97 @@
+{
+  "name": "Company",
+  "properties": {
+    "active": {
+      "default": true,
+      "type": "boolean"
+    },
+    "brand_primary_color": {
+      "description": "Hex color code for primary brand color",
+      "type": "string"
+    },
+    "brand_secondary_color": {
+      "description": "Hex color code for secondary brand color",
+      "type": "string"
+    },
+    "business_types": {
+      "description": "Service categories this company operates",
+      "items": {
+        "enum": [
+          "cleaning",
+          "holiday_let_management",
+          "companionship_care",
+          "maintenance",
+          "other"
+        ],
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "job_travel_buffer_minutes": {
+      "default": 60,
+      "description": "Minimum minutes required between consecutive jobs for the same staff member",
+      "type": "number"
+    },
+    "logo_url": {
+      "description": "URL to company logo for white-label branding",
+      "type": "string"
+    },
+    "name": {
+      "description": "Company/tenant display name",
+      "type": "string"
+    },
+    "plan_tier": {
+      "default": "pro",
+      "enum": [
+        "lite",
+        "pro",
+        "enterprise"
+      ],
+      "type": "string"
+    },
+    "subdomain": {
+      "description": "Unique subdomain identifier for this tenant",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}
