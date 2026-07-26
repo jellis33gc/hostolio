@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const STATUS_VARIANT = {
   draft: 'secondary', scheduled: 'outline', assigned: 'outline', en_route: 'default',
@@ -32,7 +33,8 @@ export default function MyJobs() {
           <p className="text-sm text-muted-foreground">No jobs assigned to you yet.</p>
         )}
         {jobs.map((j) => (
-          <Card key={j.id}>
+          <Link key={j.id} to={`/jobs/${j.id}`} className="block">
+          <Card className="hover:border-primary/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-base capitalize">{j.job_type?.replace(/_/g, ' ')}</CardTitle>
               <Badge variant={STATUS_VARIANT[j.status] || 'outline'} className="capitalize">{j.status?.replace(/_/g, ' ')}</Badge>
@@ -44,6 +46,7 @@ export default function MyJobs() {
               {j.special_instructions && <p className="text-sm mt-2">{j.special_instructions}</p>}
             </CardContent>
           </Card>
+          </Link>
         ))}
       </div>
     </AppLayout>
