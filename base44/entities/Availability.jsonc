@@ -1,0 +1,99 @@
+{
+  "name": "Availability",
+  "properties": {
+    "available": {
+      "default": true,
+      "description": "For exceptions: false means unavailable that day (e.g. one-off unavailability), true means an added availability window",
+      "type": "boolean"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "date": {
+      "description": "Specific date, used when kind=exception",
+      "format": "date",
+      "type": "string"
+    },
+    "day_of_week": {
+      "description": "0=Sunday..6=Saturday, used when kind=recurring",
+      "type": "number"
+    },
+    "end_time": {
+      "description": "HH:mm",
+      "type": "string"
+    },
+    "kind": {
+      "description": "recurring = weekly pattern, exception = one-off override for a specific date",
+      "enum": [
+        "recurring",
+        "exception"
+      ],
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "staff_id": {
+      "description": "User id of the staff member",
+      "type": "string"
+    },
+    "start_time": {
+      "description": "HH:mm",
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "staff_id",
+    "kind"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.staff_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.staff_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.staff_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.staff_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}

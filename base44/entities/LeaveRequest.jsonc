@@ -1,0 +1,108 @@
+{
+  "name": "LeaveRequest",
+  "properties": {
+    "admin_note": {
+      "description": "Internal note from admin on approval/rejection",
+      "type": "string"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "end_date": {
+      "format": "date",
+      "type": "string"
+    },
+    "fit_note_url": {
+      "description": "Uploaded fit note for longer sickness absence",
+      "type": "string"
+    },
+    "leave_type": {
+      "enum": [
+        "holiday",
+        "sickness"
+      ],
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "return_to_work_completed": {
+      "default": false,
+      "description": "Light-touch return-to-work check-in acknowledged",
+      "type": "boolean"
+    },
+    "staff_id": {
+      "description": "User id of the requesting staff member",
+      "type": "string"
+    },
+    "start_date": {
+      "format": "date",
+      "type": "string"
+    },
+    "status": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "staff_id",
+    "leave_type",
+    "start_date",
+    "end_date"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.staff_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.staff_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "$and": [
+            {
+              "data.staff_id": "{{user.id}}"
+            },
+            {
+              "data.status": "pending"
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}
