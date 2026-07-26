@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
-import { Job, Property, Customer, Room, ClockEvent } from '@/api/entities';
+import { Job, Property, Customer, Room, ClockEvent, Report, Company } from '@/api/entities';
 import { base44 } from '@/api/base44Client';
+import { buildJobReportPdf } from '@/lib/pdfReport';
 import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
-import { MapPin, Clock, LogIn, LogOut, AlertTriangle, CheckCircle2, Camera, Loader2 } from 'lucide-react';
+import { MapPin, Clock, LogIn, LogOut, AlertTriangle, CheckCircle2, Camera, Loader2, FileText } from 'lucide-react';
 
 const GEOFENCE_FLAG_METERS = 250; // flagged for review, never blocks clock-in
 
@@ -196,6 +197,18 @@ export default function JobDetail() {
     queryFn: () => ClockEvent.filter({ job_id: id }),
     enabled: !!job,
   });
+  const { data: company } = useQuery({
+    queryKey: ['company', job?.company_id],
+    queryFn: async () => (await Company.filter({ id: job.company_id }))[0],
+    enabled: !!job?.company_id,
+  });
+  const { data: reports = [], refetch: refetchReports } = useQuery({
+    queryKey: ['reports', id],
+    queryFn: () => Report.filter({ job_id: id }, '-generated_at'),
+    enabled: !!job,
+  });
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const latestReport = reports[0];
 
   const clockedIn = clockEvents.some((c) => c.event_type === 'clock_in');
   const clockedOut = clockEvents.some((c) => c.event_type === 'clock_out');
