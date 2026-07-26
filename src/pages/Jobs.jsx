@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const JOB_TYPES = ['clean', 'deep_clean', 'checkin_prep', 'checkout_turnover', 'companionship_visit', 'maintenance', 'other'];
 
@@ -174,8 +175,10 @@ export default function Jobs() {
               <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No jobs yet.</TableCell></TableRow>
             )}
             {jobs.map((j) => (
-              <TableRow key={j.id}>
-                <TableCell className="font-medium">{propertyLabel(j.property_id)}</TableCell>
+              <TableRow key={j.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.assign(`/jobs/${j.id}`)}>
+                <TableCell className="font-medium">
+                  <Link to={`/jobs/${j.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{propertyLabel(j.property_id)}</Link>
+                </TableCell>
                 <TableCell className="capitalize">{j.job_type?.replace(/_/g, ' ')}</TableCell>
                 <TableCell>{j.scheduled_start ? format(new Date(j.scheduled_start), 'd MMM, HH:mm') : '—'}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{staffLabel(j.assigned_staff_id)}</TableCell>
