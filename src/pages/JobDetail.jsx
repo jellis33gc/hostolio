@@ -235,6 +235,32 @@ export default function JobDetail() {
     refetchRooms();
   };
 
+  const generateReport = async (freshClockEvents) => {
+    setGeneratingReport(true);
+    try {
+      const pdfBlob = await buildJobReportPdf({
+        job, property, customer, company, rooms,
+        clockEvents: freshClockEvents || clockEvents,
+      });
+      const file = new File([pdfBlob], `job-report-${job.id}.pdf`, { type: 'application/pdf' });
+      const uploadRes = await base44.integrations.Core.UploadFile({ file });
+      const pdf_url = uploadRes?.file_url || uploadRes?.url;
+      await Report.create({
+        company_id: job.company_id,
+        job_id: job.id,
+        pdf_url,
+        generated_at: new Date().toISOString(),
+        generated_by: user.id,
+      });
+      refetchReports();
+      toast({ title: 'Job report generated' });
+    } catch (err) {
+      toast({ title: 'Report generation failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const handleClock = async (eventType) => {
     setClocking(true);
     try {
@@ -270,6 +296,10 @@ export default function JobDetail() {
       toast({ title: eventType === 'clock_in' ? 'Clocked in' : 'Clocked out', description: flagged ? 'Location flagged for admin review — this will not block your job.' : undefined });
       queryClient.invalidateQueries({ queryKey: ['job', id] });
       queryClient.invalidateQueries({ queryKey: ['clock-events', id] });
+      if (eventType === 'clock_out') {
+        const freshEvents = [...clockEvents, { event_type: 'clock_out', timestamp: new Date().toISOString(), flagged }];
+        generateReport(freshEvents);
+      }
     } catch (err) {
       toast({ title: 'Could not record clock event', description: err.message, variant: 'destructive' });
     } finally {
