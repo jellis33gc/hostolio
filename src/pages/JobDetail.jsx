@@ -398,6 +398,28 @@ export default function JobDetail() {
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardContent className="pt-6">
+              {latestReport ? (
+                <a href={latestReport.pdf_url} target="_blank" rel="noreferrer">
+                  <Button className="w-full" variant="outline">
+                    <FileText className="h-4 w-4 mr-1.5" /> Download job report
+                  </Button>
+                </a>
+              ) : (
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  disabled={generatingReport || rooms.length === 0}
+                  onClick={() => generateReport()}
+                >
+                  {generatingReport ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <FileText className="h-4 w-4 mr-1.5" />}
+                  {rooms.length === 0 ? 'No report yet' : 'Generate report'}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="md:col-span-2 space-y-4">
