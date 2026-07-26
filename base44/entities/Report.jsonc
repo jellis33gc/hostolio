@@ -1,0 +1,62 @@
+{
+  "name": "Report",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "generated_by": {
+      "description": "User id who triggered generation (usually the staff member on clock-out)",
+      "type": "string"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "pdf_url": {
+      "description": "URL of the generated PDF report",
+      "type": "string"
+    },
+    "sent_to_customer": {
+      "default": false,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "company_id",
+    "job_id",
+    "pdf_url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "staff"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "data.company_id": "{{user.data.company_id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

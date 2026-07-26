@@ -9,3 +9,4 @@ export const Staff = base44.entities.Staff;
 export const Job = base44.entities.Job;
 export const Room = base44.entities.Room;
 export const ClockEvent = base44.entities.ClockEvent;
+export const Report = base44.entities.Report;
