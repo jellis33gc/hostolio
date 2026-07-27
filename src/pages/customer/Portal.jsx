@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import CustomerLayout from '@/components/layout/CustomerLayout';
 import { Job, Property, Report } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, isFuture } from 'date-fns';
 import { FileText, MapPin } from 'lucide-react';
