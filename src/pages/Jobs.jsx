@@ -197,10 +197,10 @@ export default function Jobs() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
             )}
             {!isLoading && jobs.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No jobs yet.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No jobs yet.</TableCell></TableRow>
             )}
             {jobs.map((j) => (
               <TableRow key={j.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/jobs/${j.id}`)}>
@@ -226,6 +226,33 @@ export default function Jobs() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!confirmingJob} onOpenChange={(v) => !v && setConfirmingJob(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Confirm booking</DialogTitle></DialogHeader>
+          <form onSubmit={submitConfirm} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Confirmed date & time</Label>
+              <Input required type="datetime-local" value={confirmForm.scheduled_start} onChange={(e) => setConfirmForm({ ...confirmForm, scheduled_start: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Assign staff</Label>
+              <Select value={confirmForm.assigned_staff_id} onValueChange={(v) => setConfirmForm({ ...confirmForm, assigned_staff_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  {staff.map((s) => <SelectItem key={s.id} value={s.user_id}>{s.user_id}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {confirmingJob?.special_instructions && (
+              <p className="text-sm text-muted-foreground border rounded-md p-2">{confirmingJob.special_instructions}</p>
+            )}
+            <DialogFooter>
+              <Button type="submit">Confirm booking</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
