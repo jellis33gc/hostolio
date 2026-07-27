@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock } from 'lucide-react';
 
 const ADMIN_NAV = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -12,12 +12,14 @@ const ADMIN_NAV = [
   { label: 'Properties', path: '/properties', icon: Building2 },
   { label: 'Staff', path: '/staff', icon: UserCog },
   { label: 'Leave requests', path: '/leave', icon: Plane },
+  { label: 'Documents', path: '/documents', icon: FolderLock },
 ];
 
 const STAFF_NAV = [
   { label: 'My Jobs', path: '/my-jobs', icon: ClipboardList },
   { label: 'Availability', path: '/availability', icon: CalendarClock },
   { label: 'My Leave', path: '/leave', icon: Plane },
+  { label: 'My Documents', path: '/documents', icon: FolderLock },
 ];
 
 export default function AppLayout({ children }) {
