@@ -39,7 +39,11 @@ export default function StaffPage() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const matchedUser = users.find((u) => u.email?.toLowerCase() === form.email.toLowerCase());
+      // A not-yet-linked invitee won't appear in the company-scoped `users`
+      // list above (they have no company_id yet) — look them up by email
+      // directly so linking works on first invite, not just re-invite.
+      const matches = await AppUser.filter({ email: form.email });
+      const matchedUser = matches[0];
       await Staff.create({
         company_id: user.company_id,
         user_id: matchedUser?.id,
@@ -67,7 +71,8 @@ export default function StaffPage() {
   const handleLink = async (staffRecord) => {
     setLinkingId(staffRecord.id);
     try {
-      const matchedUser = users.find((u) => u.email?.toLowerCase() === staffRecord.invite_email?.toLowerCase());
+      const matches = await AppUser.filter({ email: staffRecord.invite_email });
+      const matchedUser = matches[0];
       if (!matchedUser) {
         toast({ title: 'No matching account yet', description: `${staffRecord.invite_email} hasn't registered.` });
         return;
