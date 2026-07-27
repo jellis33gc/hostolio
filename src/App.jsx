@@ -16,6 +16,7 @@ import JobDetail from './pages/JobDetail';
 import StaffPage from './pages/Staff';
 import AvailabilityPage from './pages/Availability';
 import Leave from './pages/Leave';
+import Documents from './pages/Documents';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
     <Route path="/staff" element={<StaffPage />} />
     <Route path="/availability" element={<AvailabilityPage />} />
     <Route path="/leave" element={<Leave />} />
+    <Route path="/documents" element={<Documents />} />
     <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
