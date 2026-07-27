@@ -6,7 +6,13 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-// Add page imports here
+// Public pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+// Authenticated pages
 import Dashboard from './pages/Dashboard';
 import Jobs from './pages/Jobs';
 import Customers from './pages/Customers';
@@ -17,14 +23,25 @@ import StaffPage from './pages/Staff';
 import AvailabilityPage from './pages/Availability';
 import Leave from './pages/Leave';
 import Documents from './pages/Documents';
+import Disputes from './pages/Disputes';
+import Invoices from './pages/Invoices';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
-import Disputes from './pages/Disputes';
-import Invoices from './pages/Invoices';
 
-const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
+const PUBLIC_ROUTES = (
+  <>
+    <Route path="/" element={<Home />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </>
+);
+
+const AppRoutes = () => {
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, user } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -35,20 +52,23 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // A user without an account at all (e.g. Google sign-in not provisioned) —
+  // distinct from simply "not logged in yet", which is handled below via the
+  // public marketing site + our own Login/Register pages rather than an
+  // external redirect.
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
   }
 
-  // Render the main app
+  // Logged-out visitors see the marketing homepage and our own auth pages,
+  // never an automatic external redirect straight into the app.
+  if (!isAuthenticated) {
+    return <Routes>{PUBLIC_ROUTES}</Routes>;
+  }
+
   const isStaff = user?.role === 'staff';
   const isCustomer = user?.role === 'customer';
+
   if (isCustomer) {
     return (
       <Routes>
@@ -60,36 +80,34 @@ const AuthenticatedApp = () => {
       </Routes>
     );
   }
+
   return (
     <Routes>
-    {/* Add your page Route elements here */}
-    <Route path="/" element={<Navigate to={isStaff ? '/my-jobs' : '/dashboard'} replace />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/jobs" element={<Jobs />} />
-    <Route path="/customers" element={<Customers />} />
-    <Route path="/properties" element={<Properties />} />
-    <Route path="/my-jobs" element={<MyJobs />} />
-    <Route path="/jobs/:id" element={<JobDetail />} />
-    <Route path="/staff" element={<StaffPage />} />
-    <Route path="/availability" element={<AvailabilityPage />} />
-    <Route path="/leave" element={<Leave />} />
-    <Route path="/documents" element={<Documents />} />
-    <Route path="/disputes" element={<Disputes />} />
-    <Route path="/invoices" element={<Invoices />} />
-    <Route path="*" element={<PageNotFound />} />
+      <Route path="/" element={<Navigate to={isStaff ? '/my-jobs' : '/dashboard'} replace />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/jobs" element={<Jobs />} />
+      <Route path="/customers" element={<Customers />} />
+      <Route path="/properties" element={<Properties />} />
+      <Route path="/my-jobs" element={<MyJobs />} />
+      <Route path="/jobs/:id" element={<JobDetail />} />
+      <Route path="/staff" element={<StaffPage />} />
+      <Route path="/availability" element={<AvailabilityPage />} />
+      <Route path="/leave" element={<Leave />} />
+      <Route path="/documents" element={<Documents />} />
+      <Route path="/disputes" element={<Disputes />} />
+      <Route path="/invoices" element={<Invoices />} />
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          <AuthenticatedApp />
+          <AppRoutes />
         </Router>
         <Toaster />
       </QueryClientProvider>
