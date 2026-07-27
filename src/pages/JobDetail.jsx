@@ -247,6 +247,7 @@ export default function JobDetail() {
       const pdf_url = uploadRes?.file_url || uploadRes?.url;
       await Report.create({
         company_id: job.company_id,
+        customer_id: job.customer_id,
         job_id: job.id,
         pdf_url,
         generated_at: new Date().toISOString(),
