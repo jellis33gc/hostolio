@@ -13,3 +13,4 @@ export const Report = base44.entities.Report;
 export const Availability = base44.entities.Availability;
 export const LeaveRequest = base44.entities.LeaveRequest;
 export const AppUser = base44.entities.User;
+export const Document = base44.entities.Document;
