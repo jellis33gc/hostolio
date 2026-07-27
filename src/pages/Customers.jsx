@@ -34,13 +34,43 @@ export default function Customers() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await Customer.create({ ...form, company_id: user.company_id });
+      const matches = await AppUser.filter({ email: form.email });
+      const matchedUser = matches[0];
+      await Customer.create({
+        ...form,
+        company_id: user.company_id,
+        user_id: matchedUser?.id,
+        invite_email: matchedUser ? undefined : form.email,
+      });
+      if (matchedUser && matchedUser.role !== 'customer') {
+        await AppUser.update(matchedUser.id, { role: 'customer', linked_customer_id: undefined });
+      }
       toast({ title: 'Customer added' });
       setForm({ name: '', email: '', phone: '', preferred_contact_method: 'email' });
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ['customers'] });
     } catch (err) {
       toast({ title: 'Could not add customer', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleLink = async (customerRecord) => {
+    setLinkingId(customerRecord.id);
+    try {
+      const matches = await AppUser.filter({ email: customerRecord.invite_email });
+      const matchedUser = matches[0];
+      if (!matchedUser) {
+        toast({ title: 'No matching account yet', description: `${customerRecord.invite_email} hasn't registered for portal access.` });
+        return;
+      }
+      await Customer.update(customerRecord.id, { user_id: matchedUser.id, invite_email: undefined });
+      await AppUser.update(matchedUser.id, { role: 'customer', linked_customer_id: customerRecord.id });
+      toast({ title: 'Linked' });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    } catch (err) {
+      toast({ title: 'Could not link', description: err.message, variant: 'destructive' });
+    } finally {
+      setLinkingId(null);
     }
   };
 
