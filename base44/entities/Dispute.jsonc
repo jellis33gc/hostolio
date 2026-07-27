@@ -1,0 +1,124 @@
+{
+  "name": "Dispute",
+  "properties": {
+    "category": {
+      "enum": [
+        "quality",
+        "damage",
+        "missed_visit",
+        "billing",
+        "other"
+      ],
+      "type": "string"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "evidence_urls": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "raised_by": {
+      "description": "User id who raised it (customer or admin/staff on customer's behalf)",
+      "type": "string"
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "status": {
+      "default": "open",
+      "enum": [
+        "open",
+        "investigating",
+        "resolved",
+        "rejected"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "customer_id",
+    "job_id",
+    "category",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "$and": [
+            {
+              "data.company_id": "{{user.data.company_id}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "role": "admin"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "staff"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "data.customer_id": "{{user.data.linked_customer_id}}"
+            },
+            {
+              "user_condition": {
+                "role": "customer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.customer_id": "{{user.data.linked_customer_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}

@@ -1,0 +1,111 @@
+{
+  "name": "Invoice",
+  "properties": {
+    "amount_total": {
+      "type": "number"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "due_date": {
+      "format": "date",
+      "type": "string"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "job_ids": {
+      "description": "Jobs this invoice covers",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "line_items": {
+      "items": {
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "pdf_url": {
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "customer_id",
+    "amount_total"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "data.customer_id": "{{user.data.linked_customer_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}

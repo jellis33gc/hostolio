@@ -14,3 +14,5 @@ export const Availability = base44.entities.Availability;
 export const LeaveRequest = base44.entities.LeaveRequest;
 export const AppUser = base44.entities.User;
 export const Document = base44.entities.Document;
+export const Dispute = base44.entities.Dispute;
+export const Invoice = base44.entities.Invoice;
