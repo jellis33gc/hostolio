@@ -129,6 +129,7 @@ export default function Customers() {
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Preferred contact</TableHead>
+              <TableHead>Portal access</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -136,7 +137,7 @@ export default function Customers() {
               <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
             )}
             {!isLoading && customers.length === 0 && (
-              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>
             )}
             {customers.map((c) => (
               <TableRow key={c.id}>
@@ -144,6 +145,17 @@ export default function Customers() {
                 <TableCell>{c.email || '—'}</TableCell>
                 <TableCell>{c.phone || '—'}</TableCell>
                 <TableCell className="capitalize">{c.preferred_contact_method}</TableCell>
+                <TableCell>
+                  {c.user_id ? (
+                    <Badge variant="secondary">Active</Badge>
+                  ) : c.invite_email ? (
+                    <Button size="sm" variant="outline" onClick={() => handleLink(c)} disabled={linkingId === c.id}>
+                      <Link2 className="h-3.5 w-3.5 mr-1" /> Link account
+                    </Button>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No portal access</span>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
