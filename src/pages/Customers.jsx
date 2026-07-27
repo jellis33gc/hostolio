@@ -36,14 +36,14 @@ export default function Customers() {
     try {
       const matches = await AppUser.filter({ email: form.email });
       const matchedUser = matches[0];
-      await Customer.create({
+      const created = await Customer.create({
         ...form,
         company_id: user.company_id,
         user_id: matchedUser?.id,
         invite_email: matchedUser ? undefined : form.email,
       });
-      if (matchedUser && matchedUser.role !== 'customer') {
-        await AppUser.update(matchedUser.id, { role: 'customer', linked_customer_id: undefined });
+      if (matchedUser) {
+        await AppUser.update(matchedUser.id, { role: 'customer', linked_customer_id: created.id });
       }
       toast({ title: 'Customer added' });
       setForm({ name: '', email: '', phone: '', preferred_contact_method: 'email' });
