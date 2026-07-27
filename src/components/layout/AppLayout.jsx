@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock, AlertTriangle, Receipt } from 'lucide-react';
 
 const ADMIN_NAV = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -13,6 +13,8 @@ const ADMIN_NAV = [
   { label: 'Staff', path: '/staff', icon: UserCog },
   { label: 'Leave requests', path: '/leave', icon: Plane },
   { label: 'Documents', path: '/documents', icon: FolderLock },
+  { label: 'Disputes', path: '/disputes', icon: AlertTriangle },
+  { label: 'Invoices', path: '/invoices', icon: Receipt },
 ];
 
 const STAFF_NAV = [
