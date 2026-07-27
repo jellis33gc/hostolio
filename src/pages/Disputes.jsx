@@ -23,7 +23,7 @@ export default function Disputes() {
 
   const { data: disputes = [], isLoading } = useQuery({
     queryKey: ['disputes', user?.company_id],
-    queryFn: () => Dispute.filter({ company_id: user.company_id }, '-created_date'),
+    queryFn: () => Dispute.filter({ company_id: user.company_id }),
     enabled: !!user?.company_id,
   });
   const { data: users = [] } = useQuery({
