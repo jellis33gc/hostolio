@@ -35,6 +35,8 @@ export default function Jobs() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [confirmingJob, setConfirmingJob] = useState(null);
+  const [confirmForm, setConfirmForm] = useState({ scheduled_start: '', assigned_staff_id: '' });
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ['jobs', user?.company_id],
@@ -89,6 +91,30 @@ export default function Jobs() {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
     } catch (err) {
       toast({ title: 'Could not create job', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const openConfirm = (job) => {
+    setConfirmingJob(job);
+    setConfirmForm({
+      scheduled_start: job.scheduled_start ? job.scheduled_start.slice(0, 16) : '',
+      assigned_staff_id: job.assigned_staff_id || '',
+    });
+  };
+
+  const submitConfirm = async (e) => {
+    e.preventDefault();
+    try {
+      await Job.update(confirmingJob.id, {
+        scheduled_start: new Date(confirmForm.scheduled_start).toISOString(),
+        assigned_staff_id: confirmForm.assigned_staff_id || undefined,
+        status: confirmForm.assigned_staff_id ? 'assigned' : 'scheduled',
+      });
+      toast({ title: 'Booking confirmed' });
+      setConfirmingJob(null);
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    } catch (err) {
+      toast({ title: 'Could not confirm booking', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -166,6 +192,7 @@ export default function Jobs() {
               <TableHead>When</TableHead>
               <TableHead>Assigned</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -183,7 +210,17 @@ export default function Jobs() {
                 <TableCell className="capitalize">{j.job_type?.replace(/_/g, ' ')}</TableCell>
                 <TableCell>{j.scheduled_start ? format(new Date(j.scheduled_start), 'd MMM, HH:mm') : '—'}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{staffLabel(j.assigned_staff_id)}</TableCell>
-                <TableCell><Badge variant={STATUS_VARIANT[j.status] || 'outline'} className="capitalize">{j.status?.replace(/_/g, ' ')}</Badge></TableCell>
+                <TableCell>
+                  <Badge variant={STATUS_VARIANT[j.status] || 'outline'} className="capitalize">{j.status?.replace(/_/g, ' ')}</Badge>
+                  {j.requested_by_customer && j.status === 'draft' && (
+                    <Badge variant="outline" className="ml-1.5 border-amber-400 text-amber-700">Customer request</Badge>
+                  )}
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {j.status === 'draft' && (
+                    <Button size="sm" variant="outline" onClick={() => openConfirm(j)}>Confirm</Button>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
