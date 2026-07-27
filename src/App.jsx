@@ -19,6 +19,9 @@ import Leave from './pages/Leave';
 import Documents from './pages/Documents';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
+import CustomerInvoices from './pages/customer/Invoices';
+import Disputes from './pages/Disputes';
+import Invoices from './pages/Invoices';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -52,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Navigate to="/portal" replace />} />
         <Route path="/portal" element={<CustomerPortal />} />
         <Route path="/portal/request" element={<RequestBooking />} />
+        <Route path="/portal/invoices" element={<CustomerInvoices />} />
         <Route path="*" element={<Navigate to="/portal" replace />} />
       </Routes>
     );
@@ -70,6 +74,8 @@ const AuthenticatedApp = () => {
     <Route path="/availability" element={<AvailabilityPage />} />
     <Route path="/leave" element={<Leave />} />
     <Route path="/documents" element={<Documents />} />
+    <Route path="/disputes" element={<Disputes />} />
+    <Route path="/invoices" element={<Invoices />} />
     <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
