@@ -17,6 +17,8 @@ import StaffPage from './pages/Staff';
 import AvailabilityPage from './pages/Availability';
 import Leave from './pages/Leave';
 import Documents from './pages/Documents';
+import CustomerPortal from './pages/customer/Portal';
+import RequestBooking from './pages/customer/RequestBooking';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -43,6 +45,17 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   const isStaff = user?.role === 'staff';
+  const isCustomer = user?.role === 'customer';
+  if (isCustomer) {
+    return (
+      <Routes>
+        <Route path="/" element={<Navigate to="/portal" replace />} />
+        <Route path="/portal" element={<CustomerPortal />} />
+        <Route path="/portal/request" element={<RequestBooking />} />
+        <Route path="*" element={<Navigate to="/portal" replace />} />
+      </Routes>
+    );
+  }
   return (
     <Routes>
     {/* Add your page Route elements here */}
