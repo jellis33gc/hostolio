@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
-import { CalendarPlus, Home, LogOut } from 'lucide-react';
+import { CalendarPlus, Home, LogOut, Receipt } from 'lucide-react';
 
 export default function CustomerLayout({ children }) {
   const { user, logout } = useAuth();
@@ -11,6 +11,7 @@ export default function CustomerLayout({ children }) {
   const navItems = [
     { label: 'My Visits', path: '/portal', icon: Home },
     { label: 'Request a booking', path: '/portal/request', icon: CalendarPlus },
+    { label: 'Invoices', path: '/portal/invoices', icon: Receipt },
   ];
 
   return (
