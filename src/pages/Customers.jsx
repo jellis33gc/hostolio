@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
-import { Customer } from '@/api/entities';
+import { Customer, AppUser } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Link2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function Customers() {
@@ -18,10 +18,16 @@ export default function Customers() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', preferred_contact_method: 'email' });
+  const [linkingId, setLinkingId] = useState(null);
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['customers', user?.company_id],
     queryFn: () => Customer.filter({ company_id: user.company_id }),
+    enabled: !!user?.company_id,
+  });
+  const { data: users = [] } = useQuery({
+    queryKey: ['company-users', user?.company_id],
+    queryFn: () => AppUser.filter({ company_id: user.company_id }),
     enabled: !!user?.company_id,
   });
 
