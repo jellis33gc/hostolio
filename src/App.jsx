@@ -27,6 +27,7 @@ import Disputes from './pages/Disputes';
 import Invoices from './pages/Invoices';
 import Services from './pages/Services';
 import ModuleGate from './components/ModuleGate';
+import ModuleManager from './pages/platform/ModuleManager';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
@@ -99,6 +100,7 @@ const AppRoutes = () => {
       <Route path="/disputes" element={<ModuleGate><Disputes /></ModuleGate>} />
       <Route path="/invoices" element={<ModuleGate><Invoices /></ModuleGate>} />
       <Route path="/services" element={<ModuleGate><Services /></ModuleGate>} />
+      <Route path="/platform/modules" element={<ModuleManager />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
