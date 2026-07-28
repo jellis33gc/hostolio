@@ -25,6 +25,7 @@ import Leave from './pages/Leave';
 import Documents from './pages/Documents';
 import Disputes from './pages/Disputes';
 import Invoices from './pages/Invoices';
+import Services from './pages/Services';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
@@ -96,6 +97,7 @@ const AppRoutes = () => {
       <Route path="/documents" element={<Documents />} />
       <Route path="/disputes" element={<Disputes />} />
       <Route path="/invoices" element={<Invoices />} />
+      <Route path="/services" element={<Services />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
