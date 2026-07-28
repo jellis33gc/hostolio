@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock, AlertTriangle, Receipt, Wrench } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock, AlertTriangle, Receipt, Wrench, ShieldCheck } from 'lucide-react';
 import { useModuleAccess } from '@/lib/useModuleAccess';
 import { moduleForPath } from '@/lib/modules';
 
@@ -36,6 +36,9 @@ export default function AppLayout({ children }) {
     const mod = moduleForPath(item.path);
     return !mod || isEnabled(mod.key);
   });
+  if (user?.is_platform_owner) {
+    navItems.push({ label: 'Module Manager', path: '/platform/modules', icon: ShieldCheck });
+  }
   const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
 
   return (
