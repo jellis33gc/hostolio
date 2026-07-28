@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import CustomerLayout from '@/components/layout/CustomerLayout';
-import { Job, Property } from '@/api/entities';
+import { Job, Property, Service } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 
-const JOB_TYPES = ['clean', 'deep_clean', 'checkin_prep', 'checkout_turnover', 'companionship_visit', 'maintenance', 'other'];
-
-const emptyForm = { property_id: '', job_type: 'clean', preferred_start: '', notes: '' };
+const emptyForm = { property_id: '', service_id: '', preferred_start: '', notes: '' };
 
 export default function RequestBooking() {
   const { user } = useAuth();
@@ -30,15 +28,26 @@ export default function RequestBooking() {
     enabled: !!user?.linked_customer_id,
   });
 
+  const selectedProperty = properties.find((p) => p.id === form.property_id);
+
+  const { data: services = [] } = useQuery({
+    queryKey: ['booking-services', selectedProperty?.company_id],
+    queryFn: () => Service.filter({ company_id: selectedProperty.company_id }),
+    enabled: !!selectedProperty?.company_id,
+  });
+  const activeServices = services.filter((s) => s.active !== false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const service = services.find((s) => s.id === form.service_id);
       await Job.create({
-        company_id: properties.find((p) => p.id === form.property_id)?.company_id,
+        company_id: selectedProperty.company_id,
         customer_id: user.linked_customer_id,
         property_id: form.property_id,
-        job_type: form.job_type,
+        service_id: form.service_id || undefined,
+        job_type: service?.category || 'other',
         scheduled_start: new Date(form.preferred_start).toISOString(),
         special_instructions: form.notes,
         status: 'draft',
@@ -64,7 +73,7 @@ export default function RequestBooking() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Property</Label>
-              <Select required value={form.property_id} onValueChange={(v) => setForm({ ...form, property_id: v })}>
+              <Select required value={form.property_id} onValueChange={(v) => setForm({ ...form, property_id: v, service_id: '' })}>
                 <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
                 <SelectContent>
                   {properties.map((p) => <SelectItem key={p.id} value={p.id}>{p.address_line1}</SelectItem>)}
@@ -72,13 +81,23 @@ export default function RequestBooking() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Service type</Label>
-              <Select value={form.job_type} onValueChange={(v) => setForm({ ...form, job_type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Service</Label>
+              <Select required value={form.service_id} onValueChange={(v) => setForm({ ...form, service_id: v })} disabled={!form.property_id}>
+                <SelectTrigger><SelectValue placeholder={form.property_id ? 'Select a service' : 'Choose a property first'} /></SelectTrigger>
                 <SelectContent>
-                  {JOB_TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+                  {activeServices.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}{s.default_price != null ? ` — £${Number(s.default_price).toFixed(2)}` : ''}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {form.property_id && activeServices.length === 0 && (
+                <p className="text-xs text-muted-foreground">No services published yet — contact us directly.</p>
+              )}
+              {form.service_id && services.find((s) => s.id === form.service_id)?.description && (
+                <p className="text-xs text-muted-foreground">{services.find((s) => s.id === form.service_id).description}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Preferred date & time</Label>
