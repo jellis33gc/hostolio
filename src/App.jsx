@@ -26,6 +26,7 @@ import Documents from './pages/Documents';
 import Disputes from './pages/Disputes';
 import Invoices from './pages/Invoices';
 import Services from './pages/Services';
+import ModuleGate from './components/ModuleGate';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
@@ -86,18 +87,18 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Navigate to={isStaff ? '/my-jobs' : '/dashboard'} replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/jobs" element={<Jobs />} />
-      <Route path="/customers" element={<Customers />} />
-      <Route path="/properties" element={<Properties />} />
+      <Route path="/jobs" element={<ModuleGate><Jobs /></ModuleGate>} />
+      <Route path="/customers" element={<ModuleGate><Customers /></ModuleGate>} />
+      <Route path="/properties" element={<ModuleGate><Properties /></ModuleGate>} />
       <Route path="/my-jobs" element={<MyJobs />} />
       <Route path="/jobs/:id" element={<JobDetail />} />
-      <Route path="/staff" element={<StaffPage />} />
+      <Route path="/staff" element={<ModuleGate><StaffPage /></ModuleGate>} />
       <Route path="/availability" element={<AvailabilityPage />} />
-      <Route path="/leave" element={<Leave />} />
-      <Route path="/documents" element={<Documents />} />
-      <Route path="/disputes" element={<Disputes />} />
-      <Route path="/invoices" element={<Invoices />} />
-      <Route path="/services" element={<Services />} />
+      <Route path="/leave" element={<ModuleGate><Leave /></ModuleGate>} />
+      <Route path="/documents" element={<ModuleGate><Documents /></ModuleGate>} />
+      <Route path="/disputes" element={<ModuleGate><Disputes /></ModuleGate>} />
+      <Route path="/invoices" element={<ModuleGate><Invoices /></ModuleGate>} />
+      <Route path="/services" element={<ModuleGate><Services /></ModuleGate>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
