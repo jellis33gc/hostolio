@@ -17,3 +17,4 @@ export const Document = base44.entities.Document;
 export const Dispute = base44.entities.Dispute;
 export const Invoice = base44.entities.Invoice;
 export const Service = base44.entities.Service;
+export const Subscription = base44.entities.Subscription;

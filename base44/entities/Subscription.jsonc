@@ -1,0 +1,68 @@
+{
+  "name": "Subscription",
+  "properties": {
+    "company_id": {
+      "type": "string"
+    },
+    "enabled_modules": {
+      "description": "\u00c0-la-carte module keys this company has paid for, e.g. operations, staff_management, invoicing, customer_portal, crm, marketing",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "notes": {
+      "description": "Internal notes for the platform owner, e.g. manual arrangements",
+      "type": "string"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "trialing",
+        "past_due",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "is_platform_owner": true
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "is_platform_owner": true
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "is_platform_owner": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "is_platform_owner": true
+      }
+    }
+  },
+  "type": "object"
+}
