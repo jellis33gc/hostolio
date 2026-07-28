@@ -117,14 +117,34 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    
+
+    // Our own app-params caching (src/lib/app-params.js) mirrors the access
+    // token into localStorage separately from whatever the SDK's internal
+    // logout clears — if those get out of sync, logout can silently do
+    // nothing (the cached token survives and re-authenticates you on the
+    // next load). Clear our own copies explicitly rather than trust the SDK
+    // call alone.
+    try {
+      localStorage.removeItem('base44_access_token');
+      localStorage.removeItem('token');
+    } catch (e) {
+      console.error('Failed to clear cached auth token:', e);
+    }
+
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
+      base44.auth.logout(window.location.origin + '/');
     } else {
       // Just remove the token without redirect
       base44.auth.logout();
     }
+
+    // Belt-and-braces: force a real navigation to the public homepage so
+    // stale in-memory state can't linger even if the SDK's own redirect
+    // doesn't fire for some reason.
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 150);
   };
 
   const navigateToLogin = () => {
