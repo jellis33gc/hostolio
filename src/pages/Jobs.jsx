@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
-import { Job, Property, Customer, Staff } from '@/api/entities';
+import { Job, Property, Customer, Staff, Service } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ const STATUS_VARIANT = {
 };
 
 const emptyForm = {
-  property_id: '', job_type: 'clean', scheduled_start: '', scheduled_end: '',
+  property_id: '', service_id: '', job_type: 'clean', scheduled_start: '', scheduled_end: '',
   assigned_staff_id: '', special_instructions: '',
 };
 
@@ -58,6 +58,11 @@ export default function Jobs() {
     queryFn: () => Staff.filter({ company_id: user.company_id }),
     enabled: !!user?.company_id,
   });
+  const { data: services = [] } = useQuery({
+    queryKey: ['services', user?.company_id],
+    queryFn: () => Service.filter({ company_id: user.company_id }),
+    enabled: !!user?.company_id,
+  });
 
   const propertyLabel = (id) => {
     const p = properties.find((p) => p.id === id);
@@ -67,6 +72,15 @@ export default function Jobs() {
   };
   const staffLabel = (userId) => staff.find((s) => s.user_id === userId)?.user_id ? userId : '—';
 
+  const handleServiceSelect = (serviceId) => {
+    const svc = services.find((s) => s.id === serviceId);
+    setForm((prev) => ({
+      ...prev,
+      service_id: serviceId,
+      job_type: svc?.category || prev.job_type,
+    }));
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
@@ -75,6 +89,7 @@ export default function Jobs() {
         company_id: user.company_id,
         property_id: form.property_id,
         customer_id: property?.customer_id,
+        service_id: form.service_id || undefined,
         job_type: form.job_type,
         scheduled_start: new Date(form.scheduled_start).toISOString(),
         scheduled_end: form.scheduled_end ? new Date(form.scheduled_end).toISOString() : undefined,
@@ -139,6 +154,17 @@ export default function Jobs() {
                   <SelectContent>
                     {properties.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.address_line1}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Service (optional)</Label>
+                <Select value={form.service_id} onValueChange={handleServiceSelect}>
+                  <SelectTrigger><SelectValue placeholder="None — pick a job type instead" /></SelectTrigger>
+                  <SelectContent>
+                    {services.filter((s) => s.active !== false).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}{s.default_price != null ? ` — £${Number(s.default_price).toFixed(2)}` : ''}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
