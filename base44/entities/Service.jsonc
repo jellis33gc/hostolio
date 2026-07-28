@@ -1,0 +1,82 @@
+{
+  "name": "Service",
+  "properties": {
+    "active": {
+      "default": true,
+      "type": "boolean"
+    },
+    "category": {
+      "description": "Broad category, mirrors Job.job_type values so existing job scheduling logic keeps working",
+      "enum": [
+        "clean",
+        "deep_clean",
+        "checkin_prep",
+        "checkout_turnover",
+        "companionship_visit",
+        "maintenance",
+        "other"
+      ],
+      "type": "string"
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "default_duration_minutes": {
+      "type": "number"
+    },
+    "default_price": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_id",
+    "name",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$and": [
+        {
+          "data.company_id": "{{user.data.company_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object"
+}
