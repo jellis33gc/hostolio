@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
-import { Invoice, Customer, Job, Company } from '@/api/entities';
+import { Invoice, Customer, Job, Company, Service } from '@/api/entities';
 import { base44 } from '@/api/base44Client';
 import { buildInvoicePdf } from '@/lib/pdfInvoice';
 import { useAuth } from '@/lib/AuthContext';
@@ -51,6 +51,11 @@ export default function Invoices() {
     queryFn: async () => (await Company.filter({ id: user.company_id }))[0],
     enabled: !!user?.company_id,
   });
+  const { data: allServices = [] } = useQuery({
+    queryKey: ['services', user?.company_id],
+    queryFn: () => Service.filter({ company_id: user.company_id }),
+    enabled: !!user?.company_id,
+  });
 
   const customerName = (id) => customers.find((c) => c.id === id)?.name || '—';
 
@@ -65,7 +70,10 @@ export default function Invoices() {
 
   const toggleJob = (job) => {
     setSelectedJobIds((prev) => (prev.includes(job.id) ? prev.filter((id) => id !== job.id) : [...prev, job.id]));
-    if (!amounts[job.id]) setAmounts((prev) => ({ ...prev, [job.id]: '' }));
+    if (!amounts[job.id]) {
+      const service = allServices.find((s) => s.id === job.service_id);
+      setAmounts((prev) => ({ ...prev, [job.id]: service?.default_price != null ? String(service.default_price) : '' }));
+    }
   };
 
   const total = selectedJobIds.reduce((sum, id) => sum + (Number(amounts[id]) || 0), 0);
