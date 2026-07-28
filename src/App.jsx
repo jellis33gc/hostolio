@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
@@ -32,13 +31,6 @@ import ModuleManager from './pages/platform/ModuleManager';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
-import { AppUser } from '@/api/entities';
-
-// One-time, hardcoded-email bootstrap for the very first platform owner.
-// Deliberately NOT a general "first user becomes owner" mechanism — that
-// would be a real self-escalation risk for anyone else who signs up first.
-// Remove this once the account below has is_platform_owner confirmed set.
-const PLATFORM_OWNER_BOOTSTRAP_EMAIL = 'j.ellis33gc@gmail.com';
 
 const PUBLIC_ROUTES = (
   <>
@@ -53,14 +45,6 @@ const PUBLIC_ROUTES = (
 
 const AppRoutes = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, user } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated && user && user.email === PLATFORM_OWNER_BOOTSTRAP_EMAIL && !user.is_platform_owner) {
-      AppUser.update(user.id, { is_platform_owner: true })
-        .then(() => window.location.reload())
-        .catch((err) => console.error('Platform owner bootstrap failed:', err));
-    }
-  }, [isAuthenticated, user]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
