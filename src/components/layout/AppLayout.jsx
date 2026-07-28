@@ -4,6 +4,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LayoutDashboard, ClipboardList, Users, Building2, LogOut, UserCog, CalendarClock, Plane, FolderLock, AlertTriangle, Receipt, Wrench } from 'lucide-react';
+import { useModuleAccess } from '@/lib/useModuleAccess';
+import { moduleForPath } from '@/lib/modules';
 
 const ADMIN_NAV = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -28,8 +30,12 @@ const STAFF_NAV = [
 export default function AppLayout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { isEnabled } = useModuleAccess();
   const role = user?.role;
-  const navItems = role === 'staff' ? STAFF_NAV : ADMIN_NAV;
+  const navItems = (role === 'staff' ? STAFF_NAV : ADMIN_NAV).filter((item) => {
+    const mod = moduleForPath(item.path);
+    return !mod || isEnabled(mod.key);
+  });
   const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
 
   return (
