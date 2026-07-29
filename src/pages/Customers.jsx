@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import { Customer, AppUser } from '@/api/entities';
+import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,18 +36,24 @@ export default function Customers() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const matches = await AppUser.filter({ email: form.email });
-      const matchedUser = matches[0];
+      let invitedUser = null;
+      if (form.email) {
+        // Actually creates the account and emails them a portal invite — role
+        // must be 'user'/'admin' at invite time, we re-role to 'customer' after.
+        await base44.users.inviteUser(form.email, 'user');
+        const matches = await AppUser.filter({ email: form.email });
+        invitedUser = matches[0];
+      }
       const created = await Customer.create({
         ...form,
         company_id: user.company_id,
-        user_id: matchedUser?.id,
-        invite_email: matchedUser ? undefined : form.email,
+        user_id: invitedUser?.id,
+        invite_email: invitedUser ? undefined : (form.email || undefined),
       });
-      if (matchedUser) {
-        await AppUser.update(matchedUser.id, { role: 'customer', linked_customer_id: created.id });
+      if (invitedUser) {
+        await AppUser.update(invitedUser.id, { role: 'customer', linked_customer_id: created.id });
       }
-      toast({ title: 'Customer added' });
+      toast({ title: 'Customer added', description: form.email ? `${form.email} will get an email to set up portal access.` : undefined });
       setForm({ name: '', email: '', phone: '', preferred_contact_method: 'email' });
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -58,10 +65,11 @@ export default function Customers() {
   const handleLink = async (customerRecord) => {
     setLinkingId(customerRecord.id);
     try {
+      await base44.users.inviteUser(customerRecord.invite_email, 'user');
       const matches = await AppUser.filter({ email: customerRecord.invite_email });
       const matchedUser = matches[0];
       if (!matchedUser) {
-        toast({ title: 'No matching account yet', description: `${customerRecord.invite_email} hasn't registered for portal access.` });
+        toast({ title: 'Invite re-sent', description: `${customerRecord.invite_email} hasn't completed sign-up yet.` });
         return;
       }
       await Customer.update(customerRecord.id, { user_id: matchedUser.id, invite_email: undefined });
