@@ -28,6 +28,7 @@ import Invoices from './pages/Invoices';
 import Services from './pages/Services';
 import ModuleGate from './components/ModuleGate';
 import ModuleManager from './pages/platform/ModuleManager';
+import Companies from './pages/platform/Companies';
 import CustomerPortal from './pages/customer/Portal';
 import RequestBooking from './pages/customer/RequestBooking';
 import CustomerInvoices from './pages/customer/Invoices';
@@ -71,6 +72,8 @@ const AppRoutes = () => {
 
   const isStaff = user?.role === 'staff';
   const isCustomer = user?.role === 'customer';
+  const isPlatformOwner = !!user?.is_platform_owner;
+  const hasTenant = !!user?.company_id;
 
   if (isCustomer) {
     return (
@@ -84,9 +87,13 @@ const AppRoutes = () => {
     );
   }
 
+  const rootRedirect = isPlatformOwner && !hasTenant
+    ? '/platform/companies'
+    : (isStaff ? '/my-jobs' : '/dashboard');
+
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={isStaff ? '/my-jobs' : '/dashboard'} replace />} />
+      <Route path="/" element={<Navigate to={rootRedirect} replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/jobs" element={<ModuleGate><Jobs /></ModuleGate>} />
       <Route path="/customers" element={<ModuleGate><Customers /></ModuleGate>} />
@@ -101,6 +108,7 @@ const AppRoutes = () => {
       <Route path="/invoices" element={<ModuleGate><Invoices /></ModuleGate>} />
       <Route path="/services" element={<ModuleGate><Services /></ModuleGate>} />
       <Route path="/platform/modules" element={<ModuleManager />} />
+      <Route path="/platform/companies" element={<Companies />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
