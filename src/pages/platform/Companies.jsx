@@ -31,6 +31,8 @@ export default function Companies() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [linkingId, setLinkingId] = useState(null);
+  const [inviteDrafts, setInviteDrafts] = useState({});
+  const [invitingId, setInvitingId] = useState(null);
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ['all-companies'],
@@ -87,6 +89,31 @@ export default function Companies() {
       queryClient.invalidateQueries({ queryKey: ['all-users-for-companies'] });
     } catch (err) {
       toast({ title: 'Could not create company', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleSetInviteEmail = async (company) => {
+    const email = inviteDrafts[company.id]?.trim();
+    if (!email) return;
+    setInvitingId(company.id);
+    try {
+      const matches = await AppUser.filter({ email });
+      const matchedUser = matches[0];
+      if (matchedUser) {
+        // Already registered — link immediately rather than parking it as a pending invite.
+        await AppUser.update(matchedUser.id, { role: 'admin', company_id: company.id });
+        toast({ title: 'Admin linked' });
+      } else {
+        await Company.update(company.id, { admin_invite_email: email });
+        toast({ title: 'Invite saved', description: `${email} needs to register — link them here once they have.` });
+      }
+      setInviteDrafts((prev) => ({ ...prev, [company.id]: '' }));
+      queryClient.invalidateQueries({ queryKey: ['all-companies'] });
+      queryClient.invalidateQueries({ queryKey: ['all-users-for-companies'] });
+    } catch (err) {
+      toast({ title: 'Could not save', description: err.message, variant: 'destructive' });
+    } finally {
+      setInvitingId(null);
     }
   };
 
@@ -195,6 +222,19 @@ export default function Companies() {
                     <Button size="sm" variant="outline" onClick={() => handleLinkAdmin(company)} disabled={linkingId === company.id}>
                       <Link2 className="h-3.5 w-3.5 mr-1" /> Link admin
                     </Button>
+                  )}
+                  {!admin && !company.admin_invite_email && (
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        placeholder="admin@company.com"
+                        className="h-8 w-48 text-sm"
+                        value={inviteDrafts[company.id] || ''}
+                        onChange={(e) => setInviteDrafts((prev) => ({ ...prev, [company.id]: e.target.value }))}
+                      />
+                      <Button size="sm" variant="outline" onClick={() => handleSetInviteEmail(company)} disabled={invitingId === company.id || !inviteDrafts[company.id]}>
+                        Invite
+                      </Button>
+                    </div>
                   )}
                   <Link to="/platform/modules"><Button size="sm" variant="ghost">Manage modules</Button></Link>
                 </div>
