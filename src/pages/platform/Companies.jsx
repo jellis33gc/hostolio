@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import { Company, AppUser, Subscription } from '@/api/entities';
+import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,20 +69,25 @@ export default function Companies() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const matches = form.admin_email ? await AppUser.filter({ email: form.admin_email }) : [];
-      const matchedUser = matches[0];
+      let invitedUser = null;
+      if (form.admin_email) {
+        // 'admin' is a valid inviteUser role directly — no re-role step needed.
+        await base44.users.inviteUser(form.admin_email, 'admin');
+        const matches = await AppUser.filter({ email: form.admin_email });
+        invitedUser = matches[0];
+      }
       const company = await Company.create({
         name: form.name,
         subdomain: form.subdomain || undefined,
         business_types: form.business_types,
-        admin_invite_email: matchedUser || !form.admin_email ? undefined : form.admin_email,
+        admin_invite_email: invitedUser || !form.admin_email ? undefined : form.admin_email,
       });
-      if (matchedUser) {
-        await AppUser.update(matchedUser.id, { role: matchedUser.role === 'admin' ? 'admin' : 'admin', company_id: company.id });
+      if (invitedUser) {
+        await AppUser.update(invitedUser.id, { role: 'admin', company_id: company.id });
       }
       toast({
         title: 'Company created',
-        description: matchedUser ? `${form.admin_email} linked as admin.` : (form.admin_email ? `${form.admin_email} needs to register first — link them from here once they have.` : undefined),
+        description: form.admin_email ? `${form.admin_email} will get an email to set up their admin login.` : undefined,
       });
       setForm(emptyForm);
       setOpen(false);
@@ -97,21 +103,18 @@ export default function Companies() {
     if (!email) return;
     setInvitingId(company.id);
     try {
+      await base44.users.inviteUser(email, 'admin');
       const matches = await AppUser.filter({ email });
-      const matchedUser = matches[0];
-      if (matchedUser) {
-        // Already registered — link immediately rather than parking it as a pending invite.
-        await AppUser.update(matchedUser.id, { role: 'admin', company_id: company.id });
-        toast({ title: 'Admin linked' });
-      } else {
-        await Company.update(company.id, { admin_invite_email: email });
-        toast({ title: 'Invite saved', description: `${email} needs to register — link them here once they have.` });
+      const invitedUser = matches[0];
+      if (invitedUser) {
+        await AppUser.update(invitedUser.id, { role: 'admin', company_id: company.id });
       }
+      toast({ title: 'Admin invited', description: `${email} will get an email to set up their login.` });
       setInviteDrafts((prev) => ({ ...prev, [company.id]: '' }));
       queryClient.invalidateQueries({ queryKey: ['all-companies'] });
       queryClient.invalidateQueries({ queryKey: ['all-users-for-companies'] });
     } catch (err) {
-      toast({ title: 'Could not save', description: err.message, variant: 'destructive' });
+      toast({ title: 'Could not invite', description: err.message, variant: 'destructive' });
     } finally {
       setInvitingId(null);
     }
@@ -120,10 +123,11 @@ export default function Companies() {
   const handleLinkAdmin = async (company) => {
     setLinkingId(company.id);
     try {
+      await base44.users.inviteUser(company.admin_invite_email, 'admin');
       const matches = await AppUser.filter({ email: company.admin_invite_email });
       const matchedUser = matches[0];
       if (!matchedUser) {
-        toast({ title: 'No matching account yet', description: `${company.admin_invite_email} hasn't registered.` });
+        toast({ title: 'Invite re-sent', description: `${company.admin_invite_email} hasn't completed sign-up yet.` });
         return;
       }
       await AppUser.update(matchedUser.id, { role: 'admin', company_id: company.id });
@@ -182,7 +186,7 @@ export default function Companies() {
               <div className="space-y-1.5">
                 <Label>Admin's email (optional — can add later)</Label>
                 <Input type="email" value={form.admin_email} onChange={(e) => setForm({ ...form, admin_email: e.target.value })} placeholder="owner@acmecleaning.com" />
-                <p className="text-xs text-muted-foreground">If they haven't registered yet, they'll need to sign up with this email — you can link them from this page afterwards.</p>
+                <p className="text-xs text-muted-foreground">They'll get an email with a link to set up their admin login.</p>
               </div>
               <DialogFooter>
                 <Button type="submit">Create company</Button>
