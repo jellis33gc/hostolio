@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import { Staff, AppUser } from '@/api/entities';
+import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,27 +40,26 @@ export default function StaffPage() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // A not-yet-linked invitee won't appear in the company-scoped `users`
-      // list above (they have no company_id yet) — look them up by email
-      // directly so linking works on first invite, not just re-invite.
+      // Actually creates the account and emails them a join link — no more
+      // waiting on self-registration. Base44's inviteUser only accepts
+      // 'user'/'admin' as the role, so we invite as 'user' then immediately
+      // re-role them to our app-specific 'staff' role below.
+      await base44.users.inviteUser(form.email, 'user');
       const matches = await AppUser.filter({ email: form.email });
-      const matchedUser = matches[0];
+      const invitedUser = matches[0];
       await Staff.create({
         company_id: user.company_id,
-        user_id: matchedUser?.id,
-        invite_email: matchedUser ? undefined : form.email,
+        user_id: invitedUser?.id,
+        invite_email: invitedUser ? undefined : form.email,
         employment_type: form.employment_type,
         hourly_rate: form.hourly_rate ? Number(form.hourly_rate) : undefined,
         skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean),
         dbs_status: form.dbs_status,
       });
-      if (matchedUser && matchedUser.role !== 'staff') {
-        await AppUser.update(matchedUser.id, { role: 'staff', company_id: user.company_id });
+      if (invitedUser) {
+        await AppUser.update(invitedUser.id, { role: 'staff', company_id: user.company_id });
       }
-      toast({
-        title: 'Staff added',
-        description: matchedUser ? undefined : `${form.email} needs to register — link them once they've signed up.`,
-      });
+      toast({ title: 'Staff invited', description: `${form.email} will get an email to set up their login.` });
       setForm(emptyForm);
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ['staff-list'] });
@@ -71,10 +71,14 @@ export default function StaffPage() {
   const handleLink = async (staffRecord) => {
     setLinkingId(staffRecord.id);
     try {
+      // Re-sends the invite (safe/no-op if they're already registered) and
+      // then links whatever account now exists for that email — a fallback
+      // for records created before invites actually provisioned accounts.
+      await base44.users.inviteUser(staffRecord.invite_email, 'user');
       const matches = await AppUser.filter({ email: staffRecord.invite_email });
       const matchedUser = matches[0];
       if (!matchedUser) {
-        toast({ title: 'No matching account yet', description: `${staffRecord.invite_email} hasn't registered.` });
+        toast({ title: 'Invite re-sent', description: `${staffRecord.invite_email} hasn't completed sign-up yet.` });
         return;
       }
       await Staff.update(staffRecord.id, { user_id: matchedUser.id, invite_email: undefined });
@@ -107,7 +111,7 @@ export default function StaffPage() {
               <div className="space-y-1.5">
                 <Label>Email</Label>
                 <Input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                <p className="text-xs text-muted-foreground">If they haven't registered yet, they'll need to sign up with this email — you can link the account afterwards.</p>
+                <p className="text-xs text-muted-foreground">They'll get an email with a link to set up their login.</p>
               </div>
               <div className="space-y-1.5">
                 <Label>Employment type</Label>
