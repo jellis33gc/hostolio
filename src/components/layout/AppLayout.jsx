@@ -27,18 +27,42 @@ const STAFF_NAV = [
   { label: 'My Documents', path: '/documents', icon: FolderLock },
 ];
 
+const PLATFORM_NAV = [
+  { label: 'Companies', path: '/platform/companies', icon: Building2 },
+  { label: 'Module Manager', path: '/platform/modules', icon: ShieldCheck },
+];
+
+function NavLink({ label, path, icon: Icon, active }) {
+  return (
+    <Link
+      to={path}
+      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </Link>
+  );
+}
+
 export default function AppLayout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const { isEnabled } = useModuleAccess();
   const role = user?.role;
-  const navItems = (role === 'staff' ? STAFF_NAV : ADMIN_NAV).filter((item) => {
-    const mod = moduleForPath(item.path);
-    return !mod || isEnabled(mod.key);
-  });
-  if (user?.is_platform_owner) {
-    navItems.push({ label: 'Module Manager', path: '/platform/modules', icon: ShieldCheck });
-  }
+  const isPlatformOwner = !!user?.is_platform_owner;
+  // A platform owner isn't necessarily running a tenant themselves — only
+  // show operational nav once their account is actually linked to a company.
+  const hasTenant = !!user?.company_id;
+
+  const tenantNavItems = hasTenant
+    ? (role === 'staff' ? STAFF_NAV : ADMIN_NAV).filter((item) => {
+        const mod = moduleForPath(item.path);
+        return !mod || isEnabled(mod.key);
+      })
+    : [];
+
   const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
 
   return (
@@ -47,24 +71,34 @@ export default function AppLayout({ children }) {
         <div className="h-16 flex items-center px-5 border-b">
           <span className="font-heading font-semibold text-lg tracking-tight">Hostolio</span>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(({ label, path, icon: Icon }) => {
-            const active = location.pathname.startsWith(path);
-            return (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+          {isPlatformOwner && (
+            <div>
+              <p className="px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Platform</p>
+              <div className="space-y-1">
+                {PLATFORM_NAV.map((item) => (
+                  <NavLink key={item.path} {...item} active={location.pathname.startsWith(item.path)} />
+                ))}
+              </div>
+            </div>
+          )}
+          {tenantNavItems.length > 0 && (
+            <div>
+              {isPlatformOwner && (
+                <p className="px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Your Company</p>
+              )}
+              <div className="space-y-1">
+                {tenantNavItems.map((item) => (
+                  <NavLink key={item.path} {...item} active={location.pathname.startsWith(item.path)} />
+                ))}
+              </div>
+            </div>
+          )}
+          {isPlatformOwner && !hasTenant && (
+            <p className="px-3 text-xs text-muted-foreground">
+              Not linked to a company of your own yet — create one under Companies if you want to run a tenant here too.
+            </p>
+          )}
         </nav>
         <div className="border-t p-3 flex items-center gap-3">
           <Avatar className="h-8 w-8">
@@ -72,7 +106,9 @@ export default function AppLayout({ children }) {
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium truncate">{user?.full_name || user?.email}</p>
-            <p className="text-xs text-muted-foreground capitalize">{role}</p>
+            <p className="text-xs text-muted-foreground">
+              {isPlatformOwner ? 'Platform owner' : role}
+            </p>
           </div>
           <Button variant="ghost" size="icon" onClick={() => logout()} title="Log out">
             <LogOut className="h-4 w-4" />
